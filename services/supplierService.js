@@ -110,7 +110,12 @@ class SupplierService {
         try {
             const quotation = await erpnextService.getDoc('Supplier Quotation', quotationId);
             if (!quotation.success) {
-                throw new Error('Quotation not found');
+                throw new Error('Devis non trouvé');
+            }
+
+            // Vérifier si le devis est en brouillon
+            if (quotation.data.docstatus !== 0) {
+                throw new Error('Impossible de modifier les prix après soumission du devis');
             }
 
             // Mettre à jour les prix des articles

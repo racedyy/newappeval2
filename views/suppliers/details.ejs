@@ -120,9 +120,15 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-primary edit-prices" data-quotation="<%= quotation.name %>">
-                                            <i class="bi bi-pencil"></i> Modifier prix
-                                        </button>
+                                        <% if (quotation.docstatus === 0) { %>
+                                            <button class="btn btn-sm btn-primary edit-prices" data-quotation="<%= quotation.name %>">
+                                                <i class="bi bi-pencil"></i> Modifier prix
+                                            </button>
+                                        <% } else { %>
+                                            <span class="text-muted">
+                                                <i class="bi bi-lock"></i> Devis soumis
+                                            </span>
+                                        <% } %>
                                     </td>
                                 </tr>
                             <% }); %>
@@ -267,9 +273,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div id="priceUpdateAlert" class="alert d-none" role="alert"></div>
                 <form id="editPricesForm">
-                    <div id="itemsList">
-                        <!-- Les articles seront ajoutés ici dynamiquement -->
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Article</th>
+                                    <th>Description</th>
+                                    <th>Quantité</th>
+                                    <th>Prix unitaire</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsList">
+                                <!-- Les articles seront ajoutés ici dynamiquement -->
+                            </tbody>
+                        </table>
                     </div>
                 </form>
             </div>
@@ -283,20 +303,108 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    let currentQuotationId = null;
+    const itemsList = document.getElementById('itemsList');
+    const editPricesModal = document.getElementById('editPricesModal');
+    const alertDiv = document.getElementById('priceUpdateAlert');
+
+    // Fonction pour mettre à jour le total d'une ligne
+    function updateLineTotal(input) {
+        const row = input.closest('tr');
+        const qty = parseFloat(row.querySelector('[data-qty]').textContent);
+        const rate = parseFloat(input.value) || 0;
+        const totalCell = row.querySelector('[data-total]');
+        totalCell.textContent = (qty * rate).toLocaleString() + ' €';
+    }
+
+    // Fonction pour afficher une alerte
+    function showAlert(message, type) {
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        alertDiv.classList.remove('d-none');
+    }
+
     // Gestionnaire pour le bouton de modification des prix
     document.querySelectorAll('.edit-prices').forEach(button => {
         button.addEventListener('click', async function() {
-            const quotationId = this.dataset.quotation;
-            // TODO: Charger les articles de la demande de devis
-            // TODO: Afficher le modal avec les articles et leurs prix
-            $('#editPricesModal').modal('show');
+            currentQuotationId = this.dataset.quotation;
+            
+            try {
+                // Récupérer les articles du devis
+                const response = await fetch(`/api/quotation/${currentQuotationId}/items`);
+                const result = await response.json();
+
+                if (result.success) {
+                    // Vider et remplir la liste des articles
+                    itemsList.innerHTML = result.data.map(item => `
+                        <tr>
+                            <td>${item.item_code}</td>
+                            <td>${item.description || item.item_name}</td>
+                            <td data-qty>${item.qty}</td>
+                            <td>
+                                <input type="number" 
+                                       class="form-control" 
+                                       value="${item.rate}"
+                                       step="0.01"
+                                       min="0"
+                                       data-item-code="${item.item_code}"
+                                       onchange="updateLineTotal(this)"
+                                       onkeyup="updateLineTotal(this)">
+                            </td>
+                            <td data-total>${(item.qty * item.rate).toLocaleString()} €</td>
+                        </tr>
+                    `).join('');
+
+                    // Afficher le modal
+                    const modal = new bootstrap.Modal(editPricesModal);
+                    modal.show();
+                } else {
+                    showAlert('Erreur lors du chargement des articles', 'danger');
+                }
+            } catch (error) {
+                console.error('Error loading quotation items:', error);
+                showAlert('Erreur lors du chargement des articles', 'danger');
+            }
         });
     });
 
     // Gestionnaire pour la sauvegarde des prix
     document.getElementById('savePrices').addEventListener('click', async function() {
-        // TODO: Récupérer les nouveaux prix et les envoyer au serveur
-        $('#editPricesModal').modal('hide');
+        if (!currentQuotationId) return;
+
+        try {
+            // Récupérer tous les prix mis à jour
+            const items = Array.from(itemsList.querySelectorAll('input[data-item-code]')).map(input => ({
+                item_code: input.dataset.itemCode,
+                rate: parseFloat(input.value) || 0
+            }));
+
+            // Envoyer les modifications au serveur
+            const response = await fetch(`/api/quotation/${currentQuotationId}/prices`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ items })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                showAlert('Prix mis à jour avec succès', 'success');
+                setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(editPricesModal);
+                    modal.hide();
+                    // Recharger la page pour afficher les nouveaux prix
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert('Erreur lors de la mise à jour des prix', 'danger');
+            }
+        } catch (error) {
+            console.error('Error saving prices:', error);
+            showAlert('Erreur lors de la mise à jour des prix', 'danger');
+        }
     });
 });
 </script>

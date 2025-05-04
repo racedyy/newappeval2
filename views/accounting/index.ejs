@@ -1,0 +1,99 @@
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3">Comptabilité - Factures Fournisseurs</h1>
+    </div>
+
+    <% if (locals.error) { %>
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Fournisseur</th>
+                            <th>Date</th>
+                            <th>Échéance</th>
+                            <th>Total</th>
+                            <th>Payé</th>
+                            <th>Reste à payer</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (invoices && invoices.length > 0) { %>
+                            <% invoices.forEach(invoice => { %>
+                                <tr>
+                                    <td><%= invoice.name %></td>
+                                    <td><%= invoice.supplier %></td>
+                                    <td><%= new Date(invoice.posting_date).toLocaleDateString() %></td>
+                                    <td><%= new Date(invoice.due_date).toLocaleDateString() %></td>
+                                    <td><%= invoice.grand_total.toLocaleString() %> €</td>
+                                    <td><%= invoice.paid_amount.toLocaleString() %> €</td>
+                                    <td><%= invoice.outstanding_amount.toLocaleString() %> €</td>
+                                    <td>
+                                        <% 
+                                        let statusClass = '';
+                                        let statusText = '';
+                                        
+                                        switch(invoice.status) {
+                                            case 'Paid':
+                                                statusClass = 'bg-success';
+                                                statusText = 'Payée';
+                                                break;
+                                            case 'Overdue':
+                                                statusClass = 'bg-danger';
+                                                statusText = 'En retard';
+                                                break;
+                                            case 'Unpaid':
+                                                statusClass = 'bg-warning';
+                                                statusText = 'Non payée';
+                                                break;
+                                            case 'Return':
+                                                statusClass = 'bg-info';
+                                                statusText = 'Retournée';
+                                                break;
+                                            default:
+                                                statusClass = 'bg-secondary';
+                                                statusText = invoice.status;
+                                        }
+                                        %>
+                                        <span class="badge <%= statusClass %>">
+                                            <%= statusText %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="/accounting/invoice/<%= invoice.name %>" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Voir
+                                        </a>
+                                        <% if (invoice.outstanding_amount > 0) { %>
+                                            <a href="/accounting/invoice/<%= invoice.name %>#payment" class="btn btn-sm btn-success">
+                                                <i class="bi bi-cash"></i> Payer
+                                            </a>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">
+                                    Aucune facture trouvée
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
