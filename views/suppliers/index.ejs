@@ -1,0 +1,66 @@
+<style>
+            body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            /* padding: 20px; */
+            background-color: #f5f5f5;
+        }
+</style>
+<%- include('../partials/header') %>
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1 class="h3 mb-4">Fournisseurs</h1>
+        </div>
+    </div>
+
+    <% if (locals.error) { %>
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nom</th>
+                            <th>Groupe</th>
+                            <th>Pays</th>
+                            <th>Type</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (suppliers && suppliers.length > 0) { %>
+                            <% suppliers.forEach(supplier => { %>
+                                <tr>
+                                    <td><%= supplier.supplier_name %></td>
+                                    <td><%= supplier.supplier_group %></td>
+                                    <td><%= supplier.country || '-' %></td>
+                                    <td><%= supplier.supplier_type || '-' %></td>
+                                    <td>
+                                        <a href="/fournisseurs/<%= supplier.name %>" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Voir détails
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    Aucun fournisseur trouvé
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>

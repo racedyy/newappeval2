@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            /* padding: 20px; */
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout-btn {
+            padding: 8px 16px;
+            background-color: #dc3545;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0,0,0,.125);
+        }
+    </style>
+</head>
+<body>
+    <%- include('partials/header') %>
+
+    <div class="container py-4">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h1 class="h3 mb-4">Tableau de bord</h1>
+            </div>
+        </div>
+
+        <% if (locals.error) { %>
+            <div class="alert alert-danger" role="alert">
+                <%= error %>
+            </div>
+        <% } %>
+
+        <div class="row g-4">
+            <!-- Statistiques -->
+            <% if (locals.data && data.stats) { %>
+                <% Object.entries(data.stats).forEach(([key, stat]) => { %>
+                    <div class="col-md-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="feature-icon <%= key === 'items' ? 'bg-primary' : 
+                                                              key === 'purchaseOrders' ? 'bg-success' :
+                                                              key === 'suppliers' ? 'bg-info' : 
+                                                              'bg-warning' %> bg-gradient text-white rounded-3 me-3">
+                                        <i class="bi <%= stat.icon %> h4 mb-0"></i>
+                                    </div>
+                                    <h6 class="card-title mb-0"><%= stat.label %></h6>
+                                </div>
+                                <h2 class="mb-0"><%= stat.total %></h2>
+                                <small class="text-muted"><%= stat.label %></small>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <!-- Statistiques par défaut -->
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon bg-primary bg-gradient text-white rounded-3 me-3">
+                                    <i class="bi bi-box h4 mb-0"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Articles</h6>
+                            </div>
+                            <h2 class="mb-0">0</h2>
+                            <small class="text-muted">Total des articles</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon bg-success bg-gradient text-white rounded-3 me-3">
+                                    <i class="bi bi-cart h4 mb-0"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Commandes</h6>
+                            </div>
+                            <h2 class="mb-0">0</h2>
+                            <small class="text-muted">Commandes en cours</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon bg-info bg-gradient text-white rounded-3 me-3">
+                                    <i class="bi bi-people h4 mb-0"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Fournisseurs</h6>
+                            </div>
+                            <h2 class="mb-0">0</h2>
+                            <small class="text-muted">Fournisseurs actifs</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="feature-icon bg-warning bg-gradient text-white rounded-3 me-3">
+                                    <i class="bi bi-graph-up h4 mb-0"></i>
+                                </div>
+                                <h6 class="card-title mb-0">Valeur Stock</h6>
+                            </div>
+                            <h2 class="mb-0">0 €</h2>
+                            <small class="text-muted">Valeur totale du stock</small>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+
+    </div>
+
+    <style>
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        background-color: white;
+        border-bottom: 1px solid rgba(0,0,0,.125);
+    }
+    .badge {
+        font-weight: 500;
+    }
+    </style>
+
+    <%- include('partials/footer') %>
+</body>
+</html>

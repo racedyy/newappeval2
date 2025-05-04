@@ -1,0 +1,304 @@
+<%- include('../partials/header') %>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background-color: #f5f5f5;
+    }
+    .status-icon {
+        font-size: 1.2em;
+    }
+    .status-text {
+        font-size: 0.9em;
+        color: #666;
+    }
+    .status-complete {
+        color: #28a745;
+    }
+    .status-partial {
+        color: #ffc107;
+    }
+    .status-none {
+        color: #dc3545;
+    }
+    .badge.bg-draft { background-color: #6c757d !important; }
+    .badge.bg-to-bill { background-color: #17a2b8 !important; }
+    .badge.bg-overdue { background-color: #dc3545 !important; }
+    .badge.bg-to-receive { background-color: #ffc107 !important; }
+    .badge.bg-completed { background-color: #28a745 !important; }
+    .badge.bg-cancelled { background-color: #6c757d !important; }
+    .badge.bg-on-hold { background-color: #fd7e14 !important; }
+</style>
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-12 d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0"><%= supplier.supplier_name %></h1>
+            <a href="/fournisseurs" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <% if (locals.error) { %>
+        <div class="alert alert-danger" role="alert">
+            <%= error %>
+        </div>
+    <% } %>
+
+    <!-- Informations du fournisseur -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Informations</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Groupe :</strong> <%= supplier.supplier_group %></p>
+                    <p><strong>Type :</strong> <%= supplier.supplier_type || '-' %></p>
+                    <p><strong>Pays :</strong> <%= supplier.country || '-' %></p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Email :</strong> <%= supplier.email_id || '-' %></p>
+                    <p><strong>Téléphone :</strong> <%= supplier.phone || '-' %></p>
+                    <p><strong>Site web :</strong> <%= supplier.website || '-' %></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demandes de devis -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Demandes de devis</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Date</th>
+                            <th>Validité</th>
+                            <th>Total</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (quotations && quotations.length > 0) { %>
+                            <% quotations.forEach(quotation => { %>
+                                <tr>
+                                    <td><%= quotation.name %></td>
+                                    <td><%= new Date(quotation.transaction_date).toLocaleDateString() %></td>
+                                    <td><%= new Date(quotation.valid_till).toLocaleDateString() %></td>
+                                    <td><%= quotation.grand_total.toLocaleString() %> €</td>
+                                    <td>
+                                        <% 
+                                        let quotationStatus = '';
+                                        let quotationClass = '';
+                                        
+                                        if (quotation.docstatus === 0) {
+                                            quotationStatus = 'Brouillon';
+                                            quotationClass = 'bg-draft';
+                                        } else if (quotation.docstatus === 1) {
+                                            if (quotation.status === 'Ordered') {
+                                                quotationStatus = 'Commandé';
+                                                quotationClass = 'bg-completed';
+                                            } else {
+                                                quotationStatus = 'Soumis';
+                                                quotationClass = 'bg-to-bill';
+                                            }
+                                        } else if (quotation.docstatus === 2) {
+                                            quotationStatus = 'Annulé';
+                                            quotationClass = 'bg-cancelled';
+                                        }
+                                        %>
+                                        <span class="badge <%= quotationClass %>">
+                                            <%= quotationStatus %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary edit-prices" data-quotation="<%= quotation.name %>">
+                                            <i class="bi bi-pencil"></i> Modifier prix
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    Aucune demande de devis trouvée
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commandes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Commandes</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Référence</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Statut</th>
+                            <th>Réception</th>
+                            <th>Facturation</th>
+                            <th>Paiement</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders && orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td><%= order.name %></td>
+                                    <td><%= new Date(order.transaction_date).toLocaleDateString() %></td>
+                                    <td><%= order.grand_total.toLocaleString() %> €</td>
+                                    <td>
+                                        <% 
+                                        let orderStatus = '';
+                                        let statusClass = '';
+                                        
+                                        if (order.docstatus === 0) {
+                                            orderStatus = 'Brouillon';
+                                            statusClass = 'bg-draft';
+                                        } else if (order.docstatus === 1) {
+                                            switch(order.status) {
+                                                case 'To Receive and Bill':
+                                                    orderStatus = 'À recevoir et facturer';
+                                                    statusClass = 'bg-to-receive';
+                                                    break;
+                                                case 'To Bill':
+                                                    orderStatus = 'À facturer';
+                                                    statusClass = 'bg-to-bill';
+                                                    break;
+                                                case 'To Receive':
+                                                    orderStatus = 'À recevoir';
+                                                    statusClass = 'bg-to-receive';
+                                                    break;
+                                                case 'Completed':
+                                                    orderStatus = 'Terminé';
+                                                    statusClass = 'bg-completed';
+                                                    break;
+                                                case 'On Hold':
+                                                    orderStatus = 'En attente';
+                                                    statusClass = 'bg-on-hold';
+                                                    break;
+                                                case 'Overdue':
+                                                    orderStatus = 'En retard';
+                                                    statusClass = 'bg-overdue';
+                                                    break;
+                                                default:
+                                                    orderStatus = order.status;
+                                                    statusClass = 'bg-secondary';
+                                            }
+                                        } else if (order.docstatus === 2) {
+                                            orderStatus = 'Annulé';
+                                            statusClass = 'bg-cancelled';
+                                        }
+                                        %>
+                                        <span class="badge <%= statusClass %>">
+                                            <%= orderStatus %>
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if (order.per_received >= 100) { %>
+                                            <i class="bi bi-check-circle-fill status-icon status-complete" title="Reçu"></i>
+                                        <% } else if (order.per_received > 0) { %>
+                                            <i class="bi bi-circle-half status-icon status-partial" title="Partiellement reçu"></i>
+                                        <% } else { %>
+                                            <i class="bi bi-circle status-icon status-none" title="Non reçu"></i>
+                                        <% } %>
+                                        <div class="status-text"><%= order.per_received %>%</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if (order.per_billed >= 100) { %>
+                                            <i class="bi bi-check-circle-fill status-icon status-complete" title="Facturé"></i>
+                                        <% } else if (order.per_billed > 0) { %>
+                                            <i class="bi bi-circle-half status-icon status-partial" title="Partiellement facturé"></i>
+                                        <% } else { %>
+                                            <i class="bi bi-circle status-icon status-none" title="Non facturé"></i>
+                                        <% } %>
+                                        <div class="status-text"><%= order.per_billed %>%</div>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if (order.per_paid >= 100) { %>
+                                            <i class="bi bi-check-circle-fill status-icon status-complete" title="Payé"></i>
+                                        <% } else if (order.per_paid > 0) { %>
+                                            <i class="bi bi-circle-half status-icon status-partial" title="Partiellement payé"></i>
+                                        <% } else { %>
+                                            <i class="bi bi-circle status-icon status-none" title="Non payé"></i>
+                                        <% } %>
+                                        <div class="status-text"><%= order.per_paid %>%</div>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    Aucune commande trouvée
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Modification des prix -->
+<div class="modal fade" id="editPricesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modifier les prix</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPricesForm">
+                    <div id="itemsList">
+                        <!-- Les articles seront ajoutés ici dynamiquement -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="savePrices">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestionnaire pour le bouton de modification des prix
+    document.querySelectorAll('.edit-prices').forEach(button => {
+        button.addEventListener('click', async function() {
+            const quotationId = this.dataset.quotation;
+            // TODO: Charger les articles de la demande de devis
+            // TODO: Afficher le modal avec les articles et leurs prix
+            $('#editPricesModal').modal('show');
+        });
+    });
+
+    // Gestionnaire pour la sauvegarde des prix
+    document.getElementById('savePrices').addEventListener('click', async function() {
+        // TODO: Récupérer les nouveaux prix et les envoyer au serveur
+        $('#editPricesModal').modal('hide');
+    });
+});
+</script>
+
+<%- include('../partials/footer') %>
