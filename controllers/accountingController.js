@@ -3,11 +3,13 @@ const accountingService = require('../services/accountingService');
 class AccountingController {
     async listInvoices(req, res) {
         try {
-            const invoices = await accountingService.getAllInvoices();
+            const status = req.query.status || '';
+            const invoices = await accountingService.getAllInvoices(status);
             res.render('accounting/index', { 
                 invoices,
                 user: req.session.user,
-                active: 'accounting'
+                active: 'accounting',
+                status
             });
         } catch (error) {
             console.error('Error in accounting controller:', error);
@@ -15,7 +17,8 @@ class AccountingController {
                 error: 'Erreur lors de la récupération des factures',
                 invoices: [],
                 user: req.session.user,
-                active: 'accounting'
+                active: 'accounting',
+                status: req.query.status || ''
             });
         }
     }
@@ -37,6 +40,24 @@ class AccountingController {
             });
         } catch (error) {
             console.error('Error getting invoice details:', error);
+            res.redirect('/accounting');
+        }
+    }
+
+    async printInvoice(req, res) {
+        try {
+            const invoice = await accountingService.getInvoiceDetails(req.params.id);
+            
+            if (!invoice) {
+                return res.redirect('/accounting');
+            }
+
+            res.render('accounting/invoice-print', { 
+                invoice,
+                user: req.session.user
+            });
+        } catch (error) {
+            console.error('Error getting invoice for printing:', error);
             res.redirect('/accounting');
         }
     }

@@ -3,6 +3,20 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3">Comptabilité - Factures Fournisseurs</h1>
+        <form method="GET" class="d-flex">
+            <div class="input-group" style="max-width: 300px;">
+                <select name="status" class="form-select">
+                    <option value="">Tous les statuts</option>
+                    <option value="Paid" <%= locals.status === 'Paid' ? 'selected' : '' %>>Payée</option>
+                    <option value="Unpaid" <%= locals.status === 'Unpaid' ? 'selected' : '' %>>Non payée</option>
+                    <option value="Overdue" <%= locals.status === 'Overdue' ? 'selected' : '' %>>En retard</option>
+                    <option value="Return" <%= locals.status === 'Return' ? 'selected' : '' %>>Retournée</option>
+                </select>
+                <button class="btn btn-primary" type="submit">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+            </div>
+        </form>
     </div>
 
     <% if (locals.error) { %>

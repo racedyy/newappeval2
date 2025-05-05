@@ -31,16 +31,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Routes
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
-// const dashboardRoutes = require('./routes/dashboard');
 const suppliersRoutes = require('./routes/suppliers');
 const accountingRoutes = require('./routes/accounting');
+const calendarRoutes = require('./routes/calendar');
 const testRoutes = require('./routes/test');
 
 app.use('/', authRoutes);
 app.use('/api', apiRoutes);
-// app.use('/dashboard', dashboardRoutes);
 app.use('/fournisseurs', suppliersRoutes);
 app.use('/accounting', accountingRoutes);
+app.use('/calendar', calendarRoutes);
 app.use('/test', testRoutes);
 
 // Error handling

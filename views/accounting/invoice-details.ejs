@@ -4,9 +4,14 @@
     <div class="row mb-4">
         <div class="col-md-12 d-flex justify-content-between align-items-center">
             <h1 class="h3 mb-0">Facture <%= invoice.name %></h1>
-            <a href="/accounting" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Retour
-            </a>
+            <div>
+                <button onclick="printInvoice()" class="btn btn-primary me-2">
+                    <i class="bi bi-printer"></i> Imprimer
+                </button>
+                <a href="/accounting" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
         </div>
     </div>
 
@@ -111,6 +116,14 @@
 </div>
 
 <script>
+function printInvoice() {
+    // Ouvrir la version imprimable dans une nouvelle fenêtre
+    const printWindow = window.open('/accounting/invoice/<%= invoice.name %>/print', '_blank');
+    printWindow.onload = function() {
+        printWindow.print();
+    };
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const paymentForm = document.getElementById('paymentForm');
     const alertDiv = document.getElementById('paymentAlert');

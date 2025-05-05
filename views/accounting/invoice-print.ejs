@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Facture <%= invoice.name %></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+        .header {
+            margin-bottom: 40px;
+        }
+        .company-info {
+            float: left;
+        }
+        .invoice-info {
+            float: right;
+            text-align: right;
+        }
+        .clear {
+            clear: both;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f8f9fa;
+        }
+        .totals {
+            float: right;
+            width: 300px;
+            margin-top: 20px;
+        }
+        .totals table {
+            width: 100%;
+        }
+        .totals td {
+            padding: 5px;
+        }
+        .totals td:last-child {
+            text-align: right;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="company-info">
+            <h2><%= invoice.company %></h2>
+            <p>Adresse de l'entreprise</p>
+            <p>Téléphone: ...</p>
+            <p>Email: ...</p>
+        </div>
+        <div class="invoice-info">
+            <h1>Facture <%= invoice.name %></h1>
+            <p>Date: <%= new Date(invoice.posting_date).toLocaleDateString() %></p>
+            <p>Échéance: <%= new Date(invoice.due_date).toLocaleDateString() %></p>
+            <p>Statut: <%= invoice.status %></p>
+        </div>
+        <div class="clear"></div>
+    </div>
+
+    <div class="supplier-info">
+        <h3>Fournisseur</h3>
+        <p><strong><%= invoice.supplier %></strong></p>
+        <p><%= invoice.supplier_address || 'Adresse non spécifiée' %></p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Article</th>
+                <th>Description</th>
+                <th>Quantité</th>
+                <th>Prix unitaire</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% invoice.items.forEach(item => { %>
+                <tr>
+                    <td><%= item.item_code %></td>
+                    <td><%= item.description || item.item_name %></td>
+                    <td><%= item.qty %></td>
+                    <td><%= item.rate.toLocaleString() %> €</td>
+                    <td><%= item.amount.toLocaleString() %> €</td>
+                </tr>
+            <% }); %>
+        </tbody>
+    </table>
+
+    <div class="totals">
+        <table>
+            <tr>
+                <td>Sous-total:</td>
+                <td><%= invoice.total.toLocaleString() %> €</td>
+            </tr>
+            <% if (invoice.total_taxes_and_charges > 0) { %>
+            <tr>
+                <td>Taxes:</td>
+                <td><%= invoice.total_taxes_and_charges.toLocaleString() %> €</td>
+            </tr>
+            <% } %>
+            <tr>
+                <td><strong>Total:</strong></td>
+                <td><strong><%= invoice.grand_total.toLocaleString() %> €</strong></td>
+            </tr>
+            <tr>
+                <td>Montant payé:</td>
+                <td><%= invoice.paid_amount.toLocaleString() %> €</td>
+            </tr>
+            <tr>
+                <td>Reste à payer:</td>
+                <td><%= invoice.outstanding_amount.toLocaleString() %> €</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="clear"></div>
+
+    <div class="footer">
+        <p>Merci de votre confiance</p>
+        <p>Pour toute question concernant cette facture, veuillez nous contacter</p>
+    </div>
+
+    <button class="no-print" onclick="window.print()" style="position: fixed; top: 20px; right: 20px;">
+        Imprimer
+    </button>
+</body>
+</html>

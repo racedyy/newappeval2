@@ -10,8 +10,23 @@
 
 <div class="container py-4">
     <div class="row mb-4">
-        <div class="col-md-12">
+        <div class="col-md-6">
             <h1 class="h3 mb-4">Fournisseurs</h1>
+        </div>
+        <div class="col-md-6">
+            <form method="GET" class="d-flex justify-content-end">
+                <div class="input-group" style="max-width: 300px;">
+                    <select name="status" class="form-select">
+                        <option value="">Tous les statuts</option>
+                        <option value="active" <%= locals.status === 'active' ? 'selected' : '' %>>Actif</option>
+                        <option value="inactive" <%= locals.status === 'inactive' ? 'selected' : '' %>>Inactif</option>
+                        <option value="blocked" <%= locals.status === 'blocked' ? 'selected' : '' %>>Bloqué</option>
+                    </select>
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-search"></i> Filtrer
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

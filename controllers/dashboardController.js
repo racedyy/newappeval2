@@ -64,7 +64,7 @@ const dashboardController = {
                         items: { total: 0, label: 'Articles', icon: 'bi-box' },
                         suppliers: { total: 0, label: 'Fournisseurs actifs', icon: 'bi-people' },
                         purchaseOrders: { total: 0, label: 'Commandes en cours', icon: 'bi-cart' },
-                        stockValue: { total: '0 €', label: 'Valeur du stock', icon: 'bi-graph-up' }
+                        stockValue: { total: '0 ARS', label: 'Valeur du stock', icon: 'bi-graph-up' }
                     },
                     recentActivities: []
                 }

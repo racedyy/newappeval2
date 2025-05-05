@@ -1,8 +1,14 @@
 const erpnextService = require('./erpnextService');
 
 class AccountingService {
-    async getAllInvoices() {
+    async getAllInvoices(status = '') {
         try {
+            const filters = [['Purchase Invoice', 'docstatus', '=', 1]];
+            
+            if (status) {
+                filters.push(['Purchase Invoice', 'status', '=', status]);
+            }
+
             const result = await erpnextService.getList('Purchase Invoice', {
                 fields: [
                     'name',
@@ -15,9 +21,7 @@ class AccountingService {
                     'outstanding_amount',
                     'paid_amount'
                 ],
-                filters: [
-                    ['Purchase Invoice', 'docstatus', '=', 1]
-                ],
+                filters: filters,
                 order_by: 'posting_date desc'
             });
             return result.success ? result.data : [];

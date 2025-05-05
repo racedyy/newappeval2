@@ -1,11 +1,27 @@
 const erpnextService = require('./erpnextService');
 
 class SupplierService {
-    async getAllSuppliers() {
+    async getAllSuppliers(status = '') {
         try {
+            const filters = [['Supplier', 'disabled', '=', 0]];
+            
+            if (status) {
+                switch(status) {
+                    case 'active':
+                        filters.push(['Supplier', 'disabled', '=', 0]);
+                        break;
+                    case 'inactive':
+                        filters.push(['Supplier', 'disabled', '=', 1]);
+                        break;
+                    case 'blocked':
+                        filters.push(['Supplier', 'hold_type', '!=', '']);
+                        break;
+                }
+            }
+
             const result = await erpnextService.getList('Supplier', {
-                fields: ['name', 'supplier_name', 'supplier_group', 'country', 'supplier_type'],
-                filters: [['Supplier', 'disabled', '=', 0]],
+                fields: ['name', 'supplier_name', 'supplier_group', 'country', 'supplier_type', 'disabled', 'hold_type'],
+                filters: filters,
                 order_by: 'supplier_name asc'
             });
             return result.success ? result.data : [];

@@ -9,12 +9,14 @@ const supplierController = {
                 return res.redirect('/login');
             }
 
-            const suppliers = await supplierService.getAllSuppliers();
+            const status = req.query.status || '';
+            const suppliers = await supplierService.getAllSuppliers(status);
             
             res.render('suppliers/index', {
                 title: 'Fournisseurs - ERPNext Integration',
                 user: req.session.user,
                 suppliers,
+                status,
                 error: null
             });
         } catch (error) {
@@ -23,6 +25,7 @@ const supplierController = {
                 title: 'Fournisseurs - ERPNext Integration',
                 user: req.session.user,
                 suppliers: [],
+                status: req.query.status || '',
                 error: 'Erreur lors du chargement des fournisseurs'
             });
         }
