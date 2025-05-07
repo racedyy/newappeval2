@@ -157,6 +157,50 @@ class SupplierService {
             throw error;
         }
     }
+
+    async updateAndSubmitQuotation(quotationId, items) {
+        try {
+            // 1. Mettre à jour les prix
+            const quotation = await erpnextService.getDoc('Supplier Quotation', quotationId);
+            if (!quotation.success) {
+                throw new Error('Devis non trouvé');
+            }
+
+            if (quotation.data.docstatus !== 0) {
+                throw new Error('Impossible de modifier les prix après soumission');
+            }
+
+            // Mettre à jour les prix des articles
+            const updatedItems = quotation.data.items.map(item => {
+                const newPrice = items.find(i => i.item_code === item.item_code);
+                if (newPrice) {
+                    item.rate = newPrice.rate;
+                    item.amount = item.qty * newPrice.rate;
+                }
+                return item;
+            });
+
+            // Sauvegarder les modifications
+            const updateResult = await erpnextService.updateDoc('Supplier Quotation', quotationId, {
+                items: updatedItems
+            });
+
+            if (!updateResult.success) {
+                throw new Error('Erreur lors de la mise à jour des prix');
+            }
+
+            // 2. Soumettre le devis
+            const submitResult = await erpnextService.submitDoc('Supplier Quotation', quotationId);
+            
+            return {
+                success: submitResult.success,
+                message: submitResult.success ? 'Prix mis à jour et devis soumis avec succès' : 'Erreur lors de la soumission'
+            };
+        } catch (error) {
+            console.error('Error updating and submitting quotation:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new SupplierService();

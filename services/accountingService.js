@@ -107,6 +107,16 @@ class AccountingService {
             throw error;
         }
     }
+
+    async getInvoicePrintFormat(invoiceId, format = 'Standard') {
+        try {
+            const result = await erpnextService.getPrintFormat('Purchase Invoice', invoiceId, format);
+            return result;
+        } catch (error) {
+            console.error('Error getting invoice print format:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = new AccountingService();

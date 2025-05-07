@@ -117,11 +117,8 @@
 
 <script>
 function printInvoice() {
-    // Ouvrir la version imprimable dans une nouvelle fenêtre
-    const printWindow = window.open('/accounting/invoice/<%= invoice.name %>/print', '_blank');
-    printWindow.onload = function() {
-        printWindow.print();
-    };
+    // Rediriger vers l'URL de téléchargement du PDF
+    window.location.href = '/accounting/invoice/<%= invoice.name %>/print';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

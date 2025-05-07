@@ -46,19 +46,22 @@ class AccountingController {
 
     async printInvoice(req, res) {
         try {
-            const invoice = await accountingService.getInvoiceDetails(req.params.id);
+            const result = await accountingService.getInvoicePrintFormat(req.params.id);
             
-            if (!invoice) {
-                return res.redirect('/accounting');
+            if (!result.success) {
+                console.error('Failed to get print format:', result.error);
+                return res.status(500).json({ error: 'Erreur lors de la génération du PDF' });
             }
 
-            res.render('accounting/invoice-print', { 
-                invoice,
-                user: req.session.user
-            });
+            // Définir les en-têtes pour le téléchargement du PDF
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `attachment; filename=facture-${req.params.id}.pdf`);
+            
+            // Envoyer le PDF directement (il est déjà en format binaire)
+            res.send(result.data);
         } catch (error) {
-            console.error('Error getting invoice for printing:', error);
-            res.redirect('/accounting');
+            console.error('Error printing invoice:', error);
+            res.status(500).json({ error: 'Erreur lors de l\'impression' });
         }
     }
 

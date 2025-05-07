@@ -110,4 +110,24 @@ router.put('/quotation/:id/prices', isAuthenticated, async (req, res) => {
     }
 });
 
+// Mettre à jour les prix et soumettre un devis fournisseur
+router.put('/quotation/:id/update-and-submit', isAuthenticated, async (req, res) => {
+    try {
+        const { items } = req.body;
+        if (!items || !Array.isArray(items)) {
+            return res.status(400).json({ success: false, message: 'Format de données invalide' });
+        }
+
+        const result = await supplierService.updateAndSubmitQuotation(req.params.id, items);
+        res.json(result);
+    } catch (error) {
+        console.error('Error updating and submitting quotation:', error);
+        if (error.message.includes('après soumission')) {
+            res.status(400).json({ success: false, message: 'Impossible de modifier les prix après soumission du devis' });
+        } else {
+            res.status(500).json({ success: false, message: 'Erreur lors du traitement' });
+        }
+    }
+});
+
 module.exports = router;

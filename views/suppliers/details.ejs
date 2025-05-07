@@ -295,7 +295,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary" id="savePrices">Enregistrer</button>
+                <button type="button" class="btn btn-primary" id="savePrices">Valider</button>
             </div>
         </div>
     </div>
@@ -330,12 +330,10 @@ document.addEventListener('DOMContentLoaded', function() {
             currentQuotationId = this.dataset.quotation;
             
             try {
-                // Récupérer les articles du devis
                 const response = await fetch(`/api/quotation/${currentQuotationId}/items`);
                 const result = await response.json();
 
                 if (result.success) {
-                    // Vider et remplir la liste des articles
                     itemsList.innerHTML = result.data.map(item => `
                         <tr>
                             <td>${item.item_code}</td>
@@ -348,14 +346,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                        step="0.01"
                                        min="0"
                                        data-item-code="${item.item_code}"
-                                       onchange="updateLineTotal(this)"
-                                       onkeyup="updateLineTotal(this)">
+                                       oninput="updateLineTotal(this)">
                             </td>
                             <td data-total>${(item.qty * item.rate).toLocaleString()} €</td>
                         </tr>
                     `).join('');
 
-                    // Afficher le modal
                     const modal = new bootstrap.Modal(editPricesModal);
                     modal.show();
                 } else {
@@ -373,14 +369,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentQuotationId) return;
 
         try {
-            // Récupérer tous les prix mis à jour
             const items = Array.from(itemsList.querySelectorAll('input[data-item-code]')).map(input => ({
                 item_code: input.dataset.itemCode,
                 rate: parseFloat(input.value) || 0
             }));
 
-            // Envoyer les modifications au serveur
-            const response = await fetch(`/api/quotation/${currentQuotationId}/prices`, {
+            const response = await fetch(`/api/quotation/${currentQuotationId}/update-and-submit`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -391,19 +385,18 @@ document.addEventListener('DOMContentLoaded', function() {
             const result = await response.json();
 
             if (result.success) {
-                showAlert('Prix mis à jour avec succès', 'success');
+                showAlert(result.message, 'success');
                 setTimeout(() => {
                     const modal = bootstrap.Modal.getInstance(editPricesModal);
                     modal.hide();
-                    // Recharger la page pour afficher les nouveaux prix
                     window.location.reload();
                 }, 1500);
             } else {
-                showAlert('Erreur lors de la mise à jour des prix', 'danger');
+                showAlert(result.message || 'Erreur lors du traitement', 'danger');
             }
         } catch (error) {
-            console.error('Error saving prices:', error);
-            showAlert('Erreur lors de la mise à jour des prix', 'danger');
+            console.error('Error:', error);
+            showAlert('Erreur lors du traitement', 'danger');
         }
     });
 });

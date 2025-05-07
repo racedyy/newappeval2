@@ -215,12 +215,28 @@ class ERPNextService {
 
     async getDoc(doctype, name) {
         try {
-            console.log(`Getting document: ${doctype}/${name}`);
-            const response = await this.api.get(`/api/resource/${doctype}/${name}`);
+            const response = await this.makeRequest('GET', `/api/resource/${doctype}/${name}`);
             return { success: true, data: response.data.data };
         } catch (error) {
-            console.error(`Error getting document ${doctype}/${name}:`, error.message);
-            return { success: false, error: error.message };
+            console.error(`Error getting ${doctype}:`, error);
+            return { success: false, error };
+        }
+    }
+
+    async getPrintFormat(doctype, name, printFormat = 'Standard') {
+        try {
+            const response = await this.api.post('/api/method/frappe.utils.print_format.download_pdf', {
+                doctype: doctype,
+                name: name,
+                format: printFormat,
+                no_letterhead: 0
+            }, {
+                responseType: 'arraybuffer'  // Important pour recevoir le PDF en binaire
+            });
+            return { success: true, data: response.data };
+        } catch (error) {
+            console.error(`Error getting print format for ${doctype}:`, error);
+            return { success: false, error };
         }
     }
 
@@ -257,6 +273,30 @@ class ERPNextService {
             return { success: true, data: response.data.data };
         } catch (error) {
             console.error(`Error deleting document ${doctype}/${name}:`, error.message);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async submitDoc(doctype, name) {
+        try {
+            console.log(`Submitting document: ${doctype}/${name}`);
+            
+            // 1. D'abord récupérer le document complet
+            const docResult = await this.getDoc(doctype, name);
+            if (!docResult.success) {
+                throw new Error('Document not found');
+            }
+
+            // 2. Soumettre le document
+            const response = await this.makeRequest('POST', `/api/method/frappe.client.submit`, {
+                data: {
+                    doc: docResult.data
+                }
+            });
+            
+            return { success: true, data: response.data.data };
+        } catch (error) {
+            console.error(`Error submitting document ${doctype}/${name}:`, error.message);
             return { success: false, error: error.message };
         }
     }
